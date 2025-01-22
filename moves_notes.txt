@@ -1,0 +1,11 @@
+Power only:
+    Pound
+
+30% flinch:
+    Bite
+
+Reduce attack by 1:
+    Growl - Sound based
+
+
+
