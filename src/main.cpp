@@ -12,14 +12,17 @@ constexpr int level = 50;
 
 std::vector<std::reference_wrapper<const Attack>> get_all_attacks(
     const Pokemon& pokemon,
+    const int max_level = 60,
     const std::string& form = ""
 ) {
     std::vector<std::reference_wrapper<const Attack>> attacks{};
     //Reserve space for attacks
 
     size_t number_of_attacks = 0;
-    for (const auto& attack_vector : std::views::values(pokemon.level_to_attacks)) {
-        number_of_attacks += attack_vector.size();
+    for (const auto& [level, attack_vector] : pokemon.level_to_attacks) {
+        if (level <= max_level) {
+            number_of_attacks += attack_vector.size();
+        }
     }
     if (pokemon.tm_or_hm_to_attack.has_value()) {
         number_of_attacks += pokemon.tm_or_hm_to_attack->size();
@@ -28,8 +31,10 @@ std::vector<std::reference_wrapper<const Attack>> get_all_attacks(
         number_of_attacks += pokemon.egg_moves->size();
     }
     if (pokemon.pre_evolution_index_to_level_to_moves.has_value()) {
-        for (const auto& attack_vector : std::views::values(*pokemon.pre_evolution_index_to_level_to_moves)) {
-            number_of_attacks += attack_vector.size();
+        for (const auto& [level, attack_vector] : (*pokemon.pre_evolution_index_to_level_to_moves)) {
+            if (level <= max_level) {
+                number_of_attacks += attack_vector.size();
+            }
         }
     }
     if (pokemon.move_tutor_attacks.has_value()) {
@@ -37,8 +42,10 @@ std::vector<std::reference_wrapper<const Attack>> get_all_attacks(
     }
     if (pokemon.game_to_level_to_moves.has_value()) {
         for (const auto& attack_map : std::views::values(*pokemon.game_to_level_to_moves)) {
-            for (const std::vector<Attack>& level_up_attacks : std::views::values(attack_map)) {
-                number_of_attacks += level_up_attacks.size();
+            for (const auto& [level, level_up_attacks] : attack_map) {
+                if (level <= max_level) {
+                    number_of_attacks += level_up_attacks.size();
+                }
             }
         }
     }
@@ -47,7 +54,11 @@ std::vector<std::reference_wrapper<const Attack>> get_all_attacks(
     }
     if (!form.empty()) {
         if (pokemon.form_to_level_up_attacks.has_value()) {
-            number_of_attacks += pokemon.form_to_level_up_attacks->at(form).size();
+            for (const auto& [level, attacks] : pokemon.form_to_level_up_attacks->at(form)) {
+                if (level <= max_level) {
+                    number_of_attacks += attacks.size();
+                }
+            }
         }
         if (pokemon.form_to_tm_or_hm_to_attack.has_value()) {
             number_of_attacks += pokemon.form_to_tm_or_hm_to_attack->at(form).size();
@@ -59,9 +70,11 @@ std::vector<std::reference_wrapper<const Attack>> get_all_attacks(
     attacks.reserve(number_of_attacks);
 
 
-    for (const std::vector<Attack>& level_up_attacks : std::views::values(pokemon.level_to_attacks)) {
-        for (const Attack& attack : level_up_attacks) {
-            attacks.push_back(std::cref(attack));
+    for (const auto& [level, level_up_attacks] : pokemon.level_to_attacks) {
+        if (level <= max_level) {
+            for (const Attack& attack : level_up_attacks) {
+                attacks.push_back(std::cref(attack));
+            }
         }
     }
 
@@ -80,9 +93,11 @@ std::vector<std::reference_wrapper<const Attack>> get_all_attacks(
     if (pokemon.pre_evolution_index_to_level_to_moves.has_value()) {
         for (const std::map<int, std::vector<Attack>>& attack_map : std::views::values(
                  (*pokemon.pre_evolution_index_to_level_to_moves))) {
-            for (const std::vector<Attack>& level_up_attacks : std::views::values(attack_map)) {
-                for (const Attack& attack : level_up_attacks) {
-                    attacks.push_back(std::cref(attack));
+            for (const auto& [level, level_up_attacks] : attack_map) {
+                if (level <= max_level) {
+                    for (const Attack& attack : level_up_attacks) {
+                        attacks.push_back(std::cref(attack));
+                    }
                 }
             }
         }
@@ -97,9 +112,11 @@ std::vector<std::reference_wrapper<const Attack>> get_all_attacks(
     if (pokemon.game_to_level_to_moves.has_value()) {
         for (const std::map<int, std::vector<Attack>>& attack_map : std::views::values(
                  (*pokemon.game_to_level_to_moves))) {
-            for (const std::vector<Attack>& level_up_attacks : std::views::values(attack_map)) {
-                for (const Attack& attack : level_up_attacks) {
-                    attacks.push_back(std::cref(attack));
+            for (const auto& [level, level_up_attacks] : attack_map) {
+                if (level <= max_level) {
+                    for (const Attack& attack : level_up_attacks) {
+                        attacks.push_back(std::cref(attack));
+                    }
                 }
             }
         }
@@ -113,10 +130,11 @@ std::vector<std::reference_wrapper<const Attack>> get_all_attacks(
 
     if (!form.empty()) {
         if (pokemon.form_to_level_up_attacks.has_value()) {
-            for (const std::vector<Attack>& level_up_form_attacks : std::views::values(
-                     pokemon.form_to_level_up_attacks->at(form))) {
-                for (const Attack& attack : level_up_form_attacks) {
-                    attacks.push_back(std::cref(attack));
+            for (const auto& [level, level_up_form_attacks] : pokemon.form_to_level_up_attacks->at(form)) {
+                if (level < max_level) {
+                    for (const Attack& attack : level_up_form_attacks) {
+                        attacks.push_back(std::cref(attack));
+                    }
                 }
             }
         }
@@ -150,8 +168,8 @@ std::vector<std::reference_wrapper<const Attack>> get_all_attacks(
 
 std::vector<std::reference_wrapper<const Attack>> get_one_hit_ko_attacks(
     const BattleState& battle_state,
-    DefenderTypeChart& defender_type_chart,
-    bool with_max_stats
+    const DefenderTypeChart& defender_type_chart,
+    const bool with_max_stats
 ) {
     std::vector<std::reference_wrapper<const Attack>> attacks_that_ko{};
 
@@ -255,7 +273,7 @@ std::vector<std::reference_wrapper<const Attack>> get_one_hit_ko_attacks(
 
         const auto& pokemon1_types = pokemon1.pokemon_information.pokemon_types;
         for (const auto& defender_type : pokemon1_types) {
-            const auto& multiplier = defender_type_chart[defender_type][attack_type];
+            const auto& multiplier = defender_type_chart.at(defender_type).at(attack_type);
             damage *= multiplier;
             if (multiplier > 1 &&
                 (defender_ability.contains("Solid Rock")) ||
@@ -281,8 +299,8 @@ std::vector<std::reference_wrapper<const Attack>> get_one_hit_ko_attacks(
 bool battle(
     const Pokemon& pokemon0,
     const Pokemon& pokemon1,
-    DefenderTypeChart& defender_type_chart,
-    bool with_max_stats
+    const DefenderTypeChart& defender_type_chart,
+    const bool with_max_stats
 ) {
     BattleState battle_state = {
         .pokemon0 = PokemonState{
@@ -294,7 +312,7 @@ bool battle(
             .pokemon = std::cref(pokemon1)
         },
     };
-    std::vector<std::reference_wrapper<const Attack>> attacks_that_ko = get_one_hit_ko_attacks(
+    const std::vector<std::reference_wrapper<const Attack>> attacks_that_ko = get_one_hit_ko_attacks(
         battle_state,
         defender_type_chart,
         with_max_stats
@@ -387,7 +405,6 @@ void timer(const std::function<void()>& func, const std::string& message) {
 }
 
 int main(int argc, char* argv[]) {
-
     // There are 216 fully evolved Pokemon
     static const std::initializer_list<int> fully_evolved_pokemon_indices = {
         12, 15, 18, 20, 22, 24, 26, 28, 31, 34, 36, 38, 40,
