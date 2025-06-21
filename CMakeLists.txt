@@ -22,5 +22,7 @@ add_executable(
         src/pokemon_data_source.h
         src/type_chart_data_source.cpp
         src/type_chart_data_source.h
+        src/attack_util.cpp
+        src/attack_util.h
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE glaze::glaze)

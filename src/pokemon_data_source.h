@@ -3,6 +3,6 @@
 
 #include "models.h"
 
-PokemonData& get_all_fully_evolved_pokemon(const std::list<int>& fully_evolved_pokemon_indices);
+PokemonData& get_all_fully_evolved_pokemon();
 
 #endif //POKEMON_DATA_SOURCE_H

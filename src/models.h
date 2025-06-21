@@ -71,27 +71,27 @@ struct Attack {
     std::string name;
     PokemonType pokemon_type;
     Category category;
-    int power;
-    int accuracy;
-    int effect_percent;
+    uint8_t power;
+    uint8_t accuracy;
+    uint8_t effect_percent;
 };
 
 struct PokemonInformation {
     std::string name;
     std::vector<PokemonType> pokemon_types;
-    int id;
+    uint8_t id;
     std::string ability;
     float pounds;
 };
 
 struct Stats {
     std::string name;
-    int health;
-    int attack;
-    int defense;
-    int special_attack;
-    int special_defense;
-    int speed;
+    uint16_t health;
+    uint16_t attack;
+    uint16_t defense;
+    uint16_t special_attack;
+    uint16_t special_defense;
+    uint16_t speed;
 };
 
 struct BaseStats {
@@ -135,20 +135,20 @@ struct PokemonState {
     bool with_max_stats;
     std::reference_wrapper<const Pokemon> pokemon;
 
-    int damage = 0;
+    uint16_t damage = 0;
     bool is_burned = false;
     bool has_reflect_up = false;
     bool has_light_screen_up = false;
     bool is_flash_fire_activated = false;
 
-    [[nodiscard]] int hp_left() const {
+    [[nodiscard]] uint16_t hp_left() const {
         if (with_max_stats) {
             return pokemon.get().all_stats.level_50_max_stats.health - damage;
         }
         return pokemon.get().all_stats.level_50_min_stats.health - damage;
     }
 
-    bool add_damage(const int damage) {
+    bool add_damage(const uint16_t damage) {
         this->damage += damage;
         return hp_left() > 0;
     }
@@ -164,7 +164,6 @@ struct BattleState {
     bool is_hailing = false;
     bool is_foggy = false;
 };
-
 
 
 #endif //MODELS_H
